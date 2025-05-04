@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}EventOrganizer index{% endblock %}
+
+{% block body %}
+    <h1>EventOrganizer index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for event_organizer in event_organizers %}
+            <tr>
+                <td>{{ event_organizer.id }}</td>
+                <td>{{ event_organizer.name }}</td>
+                <td>{{ event_organizer.email }}</td>
+                <td>{{ event_organizer.phone }}</td>
+                <td>
+                    <a href="{{ path('app_event_organizer_show', {'id': event_organizer.id}) }}">show</a>
+                    <a href="{{ path('app_event_organizer_edit', {'id': event_organizer.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_event_organizer_new') }}">Create new</a>
+{% endblock %}

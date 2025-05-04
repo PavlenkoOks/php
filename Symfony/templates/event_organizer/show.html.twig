@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}EventOrganizer{% endblock %}
+
+{% block body %}
+    <h1>EventOrganizer</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ event_organizer.id }}</td>
+            </tr>
+            <tr>
+                <th>Name</th>
+                <td>{{ event_organizer.name }}</td>
+            </tr>
+            <tr>
+                <th>Email</th>
+                <td>{{ event_organizer.email }}</td>
+            </tr>
+            <tr>
+                <th>Phone</th>
+                <td>{{ event_organizer.phone }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_event_organizer_index') }}">back to list</a>
+
+    <a href="{{ path('app_event_organizer_edit', {'id': event_organizer.id}) }}">edit</a>
+
+    {{ include('event_organizer/_delete_form.html.twig') }}
+{% endblock %}
