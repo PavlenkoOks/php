@@ -1,39 +1,58 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Location index{% endblock %}
+{% block title %}Локації{% endblock %}
 
 {% block body %}
-    <h1>Location index</h1>
+    <h1>Локації</h1>
 
-    <table class="table">
+    <form method="get" class="mb-3" style="margin-bottom: 20px;">
+        <input type="text" name="name" value="{{ filters.name }}" placeholder="Назва">
+        <input type="text" name="address" value="{{ filters.address }}" placeholder="Адреса">
+        <input type="number" name="capacity" value="{{ filters.capacity }}" placeholder="Місткість">
+        <select name="limit">
+            {% for n in [5,10,20,50,100] %}
+                <option value="{{ n }}" {% if filters.limit == n %}selected{% endif %}>{{ n }} на сторінці</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Фільтрувати</button>
+        <a href="{{ path('app_location_index') }}">Скинути</a>
+    </form>
+
+    <table border="1" cellpadding="5" cellspacing="0">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Address</th>
-                <th>Capacity</th>
-                <th>actions</th>
+                <th>Назва</th>
+                <th>Адреса</th>
+                <th>Місткість</th>
+                <th>Дії</th>
             </tr>
         </thead>
         <tbody>
-        {% for location in locations %}
-            <tr>
-                <td>{{ location.id }}</td>
-                <td>{{ location.name }}</td>
-                <td>{{ location.address }}</td>
-                <td>{{ location.capacity }}</td>
-                <td>
-                    <a href="{{ path('app_location_show', {'id': location.id}) }}">show</a>
-                    <a href="{{ path('app_location_edit', {'id': location.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">no records found</td>
-            </tr>
-        {% endfor %}
+            {% for location in pagination %}
+                <tr>
+                    <td>{{ location.name }}</td>
+                    <td>{{ location.address }}</td>
+                    <td>{{ location.capacity }}</td>
+                    <td>
+                        <a href="{{ path('app_location_show', {'id': location.id}) }}">Деталі</a>
+                        <a href="{{ path('app_location_edit', {'id': location.id}) }}">Редагувати</a>
+                        <form method="post" action="{{ path('app_location_delete', {'id': location.id}) }}" style="display:inline-block;" onsubmit="return confirm('Ви впевнені?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ location.id) }}">
+                            <button class="btn btn-link" style="color:red; padding:0; border:none; background:none;" type="submit">Видалити</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4">Нічого не знайдено</td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('app_location_new') }}">Create new</a>
+    <div style="margin-top: 20px;">
+        {{ knp_pagination_render(pagination) }}
+    </div>
+
+    <a href="{{ path('app_location_new') }}" style="margin-top: 20px; display: inline-block;">Додати нову локацію</a>
 {% endblock %}

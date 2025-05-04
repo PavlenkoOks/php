@@ -1,41 +1,64 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Event index{% endblock %}
+{% block title %}Події{% endblock %}
 
 {% block body %}
-    <h1>Event index</h1>
+    <h1>Події</h1>
 
-    <table class="table">
+    <form method="get" class="mb-3" style="margin-bottom: 20px;">
+        <input type="text" name="title" value="{{ filters.title }}" placeholder="Назва">
+        <input type="text" name="description" value="{{ filters.description }}" placeholder="Опис">
+        <input type="date" name="eventDate" value="{{ filters.eventDate }}">
+        <input type="text" name="location" value="{{ filters.location }}" placeholder="ID локації">
+        <input type="number" step="0.01" name="ticketPrice" value="{{ filters.ticketPrice }}" placeholder="Ціна квитка">
+        <select name="limit">
+            {% for n in [5,10,20,50,100] %}
+                <option value="{{ n }}" {% if filters.limit == n %}selected{% endif %}>{{ n }} на сторінці</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Фільтрувати</button>
+        <a href="{{ path('app_event_index') }}">Скинути</a>
+    </form>
+
+    <table border="1" cellpadding="5" cellspacing="0">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>Title</th>
-                <th>Description</th>
-                <th>EventDate</th>
-                <th>TicketPrice</th>
-                <th>actions</th>
+                <th>Назва</th>
+                <th>Опис</th>
+                <th>Дата</th>
+                <th>Локація</th>
+                <th>Ціна квитка</th>
+                <th>Дії</th>
             </tr>
         </thead>
         <tbody>
-        {% for event in events %}
-            <tr>
-                <td>{{ event.id }}</td>
-                <td>{{ event.title }}</td>
-                <td>{{ event.description }}</td>
-                <td>{{ event.eventDate ? event.eventDate|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ event.ticketPrice }}</td>
-                <td>
-                    <a href="{{ path('app_event_show', {'id': event.id}) }}">show</a>
-                    <a href="{{ path('app_event_edit', {'id': event.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="6">no records found</td>
-            </tr>
-        {% endfor %}
+            {% for event in pagination %}
+                <tr>
+                    <td>{{ event.title }}</td>
+                    <td>{{ event.description }}</td>
+                    <td>{{ event.eventDate ? event.eventDate|date('Y-m-d H:i') : '' }}</td>
+                    <td>{{ event.location ? event.location.id : '' }}</td>
+                    <td>{{ event.ticketPrice }}</td>
+                    <td>
+                        <a href="{{ path('app_event_show', {'id': event.id}) }}">Деталі</a>
+                        <a href="{{ path('app_event_edit', {'id': event.id}) }}">Редагувати</a>
+                        <form method="post" action="{{ path('app_event_delete', {'id': event.id}) }}" style="display:inline-block;" onsubmit="return confirm('Ви впевнені?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                            <button class="btn btn-link" style="color:red; padding:0; border:none; background:none;" type="submit">Видалити</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6">Нічого не знайдено</td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('app_event_new') }}">Create new</a>
+    <div style="margin-top: 20px;">
+        {{ knp_pagination_render(pagination) }}
+    </div>
+
+    <a href="{{ path('app_event_new') }}" style="margin-top: 20px; display: inline-block;">Додати нову подію</a>
 {% endblock %}

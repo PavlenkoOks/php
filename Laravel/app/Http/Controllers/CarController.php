@@ -7,10 +7,35 @@ use Illuminate\Http\Request;
 
 class CarController
 {
-    public function index()
+    public function index(Request $request)
     {
-        $cars = Car::with('customer')->get();
-        return view('cars.index', compact('cars'));
+        $query = Car::query();
+
+        if ($request->has('customer_id')) {
+            $query->where('customer_id', $request->customer_id);
+        }
+
+        if ($request->has('brand')) {
+            $query->where('brand', 'like', '%' . $request->brand . '%');
+        }
+
+        if ($request->has('model')) {
+            $query->where('model', 'like', '%' . $request->model . '%');
+        }
+
+        if ($request->has('year')) {
+            $query->where('year', $request->year);
+        }
+
+        if ($request->has('registration_number')) {
+            $query->where('registration_number', 'like', '%' . $request->registration_number . '%');
+        }
+
+        $perPage = $request->input('per_page', 10);
+        $cars = $query->with('customer')->paginate($perPage);
+        $customers = Customer::all();
+        
+        return view('cars.index', compact('cars', 'customers'));
     }
 
     public function create()

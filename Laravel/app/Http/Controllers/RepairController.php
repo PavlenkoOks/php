@@ -7,10 +7,34 @@ use Illuminate\Http\Request;
 
 class RepairController
 {
-    public function index()
+    public function index(Request $request)
     {
-        $repairs = Repair::with('car')->get();
-        return view('repairs.index', compact('repairs'));
+        $query = Repair::query();
+
+        if ($request->has('car_id')) {
+            $query->where('car_id', $request->car_id);
+        }
+
+        if ($request->has('repair_date')) {
+            $query->whereDate('repair_date', $request->repair_date);
+        }
+
+        if ($request->has('repair_type')) {
+            $query->where('repair_type', 'like', '%' . $request->repair_type . '%');
+        }
+
+        if ($request->has('min_cost')) {
+            $query->where('cost', '>=', $request->min_cost);
+        }
+        if ($request->has('max_cost')) {
+            $query->where('cost', '<=', $request->max_cost);
+        }
+
+        $perPage = $request->input('per_page', 10);
+        $repairs = $query->with(['car', 'car.customer'])->paginate($perPage);
+        $cars = Car::all();
+        
+        return view('repairs.index', compact('repairs', 'cars'));
     }
 
     public function create()

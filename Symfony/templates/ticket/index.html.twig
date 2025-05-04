@@ -1,37 +1,61 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Ticket index{% endblock %}
+{% block title %}Квитки{% endblock %}
 
 {% block body %}
-    <h1>Ticket index</h1>
+    <h1>Квитки</h1>
 
-    <table class="table">
+    <form method="get" class="mb-3" style="margin-bottom: 20px;">
+        <input type="text" name="event" value="{{ filters.event }}" placeholder="ID події">
+        <input type="text" name="participant" value="{{ filters.participant }}" placeholder="ID учасника">
+        <input type="date" name="purchaseDate" value="{{ filters.purchaseDate }}">
+        <input type="number" step="0.01" name="pricePaid" value="{{ filters.pricePaid }}" placeholder="Ціна">
+        <select name="limit">
+            {% for n in [5,10,20,50,100] %}
+                <option value="{{ n }}" {% if filters.limit == n %}selected{% endif %}>{{ n }} на сторінці</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Фільтрувати</button>
+        <a href="{{ path('app_ticket_index') }}">Скинути</a>
+    </form>
+
+    <table border="1" cellpadding="5" cellspacing="0">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>PurchaseDate</th>
-                <th>PricePaid</th>
-                <th>actions</th>
+                <th>Подія</th>
+                <th>Учасник</th>
+                <th>Дата покупки</th>
+                <th>Ціна</th>
+                <th>Дії</th>
             </tr>
         </thead>
         <tbody>
-        {% for ticket in tickets %}
-            <tr>
-                <td>{{ ticket.id }}</td>
-                <td>{{ ticket.purchaseDate ? ticket.purchaseDate|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ ticket.pricePaid }}</td>
-                <td>
-                    <a href="{{ path('app_ticket_show', {'id': ticket.id}) }}">show</a>
-                    <a href="{{ path('app_ticket_edit', {'id': ticket.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="4">no records found</td>
-            </tr>
-        {% endfor %}
+            {% for ticket in pagination %}
+                <tr>
+                    <td>{{ ticket.event ? ticket.event.id : '' }}</td>
+                    <td>{{ ticket.participant ? ticket.participant.id : '' }}</td>
+                    <td>{{ ticket.purchaseDate ? ticket.purchaseDate|date('Y-m-d H:i') : '' }}</td>
+                    <td>{{ ticket.pricePaid }}</td>
+                    <td>
+                        <a href="{{ path('app_ticket_show', {'id': ticket.id}) }}">Деталі</a>
+                        <a href="{{ path('app_ticket_edit', {'id': ticket.id}) }}">Редагувати</a>
+                        <form method="post" action="{{ path('app_ticket_delete', {'id': ticket.id}) }}" style="display:inline-block;" onsubmit="return confirm('Ви впевнені?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ ticket.id) }}">
+                            <button class="btn btn-link" style="color:red; padding:0; border:none; background:none;" type="submit">Видалити</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">Нічого не знайдено</td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('app_ticket_new') }}">Create new</a>
+    <div style="margin-top: 20px;">
+        {{ knp_pagination_render(pagination) }}
+    </div>
+
+    <a href="{{ path('app_ticket_new') }}" style="margin-top: 20px; display: inline-block;">Додати новий квиток</a>
 {% endblock %}

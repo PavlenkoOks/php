@@ -1,41 +1,61 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Participant index{% endblock %}
+{% block title %}Учасники{% endblock %}
 
 {% block body %}
-    <h1>Participant index</h1>
+    <h1>Учасники</h1>
 
-    <table class="table">
+    <form method="get" class="mb-3" style="margin-bottom: 20px;">
+        <input type="text" name="firstName" value="{{ filters.firstName }}" placeholder="Ім'я">
+        <input type="text" name="lastName" value="{{ filters.lastName }}" placeholder="Прізвище">
+        <input type="text" name="email" value="{{ filters.email }}" placeholder="Email">
+        <input type="text" name="phone" value="{{ filters.phone }}" placeholder="Телефон">
+        <select name="limit">
+            {% for n in [5,10,20,50,100] %}
+                <option value="{{ n }}" {% if filters.limit == n %}selected{% endif %}>{{ n }} на сторінці</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Фільтрувати</button>
+        <a href="{{ path('app_participant_index') }}">Скинути</a>
+    </form>
+
+    <table border="1" cellpadding="5" cellspacing="0">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>FirstName</th>
-                <th>LastName</th>
+                <th>Ім'я</th>
+                <th>Прізвище</th>
                 <th>Email</th>
-                <th>Phone</th>
-                <th>actions</th>
+                <th>Телефон</th>
+                <th>Дії</th>
             </tr>
         </thead>
         <tbody>
-        {% for participant in participants %}
-            <tr>
-                <td>{{ participant.id }}</td>
-                <td>{{ participant.firstName }}</td>
-                <td>{{ participant.lastName }}</td>
-                <td>{{ participant.email }}</td>
-                <td>{{ participant.phone }}</td>
-                <td>
-                    <a href="{{ path('app_participant_show', {'id': participant.id}) }}">show</a>
-                    <a href="{{ path('app_participant_edit', {'id': participant.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="6">no records found</td>
-            </tr>
-        {% endfor %}
+            {% for participant in pagination %}
+                <tr>
+                    <td>{{ participant.firstName }}</td>
+                    <td>{{ participant.lastName }}</td>
+                    <td>{{ participant.email }}</td>
+                    <td>{{ participant.phone }}</td>
+                    <td>
+                        <a href="{{ path('app_participant_show', {'id': participant.id}) }}">Деталі</a>
+                        <a href="{{ path('app_participant_edit', {'id': participant.id}) }}">Редагувати</a>
+                        <form method="post" action="{{ path('app_participant_delete', {'id': participant.id}) }}" style="display:inline-block;" onsubmit="return confirm('Ви впевнені?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ participant.id) }}">
+                            <button class="btn btn-link" style="color:red; padding:0; border:none; background:none;" type="submit">Видалити</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">Нічого не знайдено</td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('app_participant_new') }}">Create new</a>
+    <div style="margin-top: 20px;">
+        {{ knp_pagination_render(pagination) }}
+    </div>
+
+    <a href="{{ path('app_participant_new') }}" style="margin-top: 20px; display: inline-block;">Додати нового учасника</a>
 {% endblock %}

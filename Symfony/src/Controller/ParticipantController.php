@@ -6,6 +6,7 @@ use App\Entity\Participant;
 use App\Form\ParticipantForm;
 use App\Repository\ParticipantRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,13 +16,47 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ParticipantController extends AbstractController
 {
     #[Route(name: 'app_participant_index', methods: ['GET'])]
-    public function index(ParticipantRepository $participantRepository): Response
+    public function index(
+        Request $request,
+        ParticipantRepository $participantRepository,
+        PaginatorInterface $paginator
+    ): Response
     {
+        $queryBuilder = $participantRepository->createQueryBuilder('p');
+
+        if ($firstName = $request->query->get('firstName')) {
+            $queryBuilder->andWhere('p.firstName LIKE :firstName')->setParameter('firstName', "%$firstName%");
+        }
+        if ($lastName = $request->query->get('lastName')) {
+            $queryBuilder->andWhere('p.lastName LIKE :lastName')->setParameter('lastName', "%$lastName%");
+        }
+        if ($email = $request->query->get('email')) {
+            $queryBuilder->andWhere('p.email LIKE :email')->setParameter('email', "%$email%");
+        }
+        if ($phone = $request->query->get('phone')) {
+            $queryBuilder->andWhere('p.phone LIKE :phone')->setParameter('phone', "%$phone%");
+        }
+
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 10);
+
+        $pagination = $paginator->paginate(
+            $queryBuilder,
+            $page,
+            $limit
+        );
+
         return $this->render('participant/index.html.twig', [
-            'participants' => $participantRepository->findAll(),
+            'pagination' => $pagination,
+            'filters' => [
+                'firstName' => $firstName,
+                'lastName' => $lastName,
+                'email' => $email,
+                'phone' => $phone,
+                'limit' => $limit,
+            ],
         ]);
     }
-
     #[Route('/new', name: 'app_participant_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {

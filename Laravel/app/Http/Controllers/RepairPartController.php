@@ -3,14 +3,43 @@ namespace App\Http\Controllers;
 
 use App\Models\RepairPart;
 use App\Models\Repair;
+use App\Models\SparePart;
 use Illuminate\Http\Request;
 
 class RepairPartController
 {
-    public function index()
+    public function index(Request $request)
     {
-        $repairParts = RepairPart::with('repair')->get();
-        return view('repair_parts.index', compact('repairParts'));
+        $query = RepairPart::query();
+
+        if ($request->has('repair_id')) {
+            $query->where('repair_id', $request->repair_id);
+        }
+
+        if ($request->has('part_id')) {
+            $query->where('part_id', $request->part_id);
+        }
+
+        if ($request->has('min_quantity')) {
+            $query->where('quantity_used', '>=', $request->min_quantity);
+        }
+        if ($request->has('max_quantity')) {
+            $query->where('quantity_used', '<=', $request->max_quantity);
+        }
+
+        if ($request->has('min_total_cost')) {
+            $query->where('total_cost', '>=', $request->min_total_cost);
+        }
+        if ($request->has('max_total_cost')) {
+            $query->where('total_cost', '<=', $request->max_total_cost);
+        }
+
+        $perPage = $request->input('per_page', 10);
+        $repairParts = $query->with(['repair', 'sparePart'])->paginate($perPage);
+        $repairs = Repair::all();
+        $spareParts = SparePart::all();
+        
+        return view('repair_parts.index', compact('repairParts', 'repairs', 'spareParts'));
     }
 
     public function create()

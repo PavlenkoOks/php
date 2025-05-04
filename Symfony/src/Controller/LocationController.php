@@ -6,6 +6,7 @@ use App\Entity\Location;
 use App\Form\LocationForm;
 use App\Repository\LocationRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,13 +16,43 @@ use Symfony\Component\Routing\Attribute\Route;
 final class LocationController extends AbstractController
 {
     #[Route(name: 'app_location_index', methods: ['GET'])]
-    public function index(LocationRepository $locationRepository): Response
+    public function index(
+        Request $request,
+        LocationRepository $locationRepository,
+        PaginatorInterface $paginator
+    ): Response
     {
+        $queryBuilder = $locationRepository->createQueryBuilder('l');
+
+        if ($name = $request->query->get('name')) {
+            $queryBuilder->andWhere('l.name LIKE :name')->setParameter('name', "%$name%");
+        }
+        if ($address = $request->query->get('address')) {
+            $queryBuilder->andWhere('l.address LIKE :address')->setParameter('address', "%$address%");
+        }
+        if ($capacity = $request->query->get('capacity')) {
+            $queryBuilder->andWhere('l.capacity = :capacity')->setParameter('capacity', $capacity);
+        }
+
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 10);
+
+        $pagination = $paginator->paginate(
+            $queryBuilder,
+            $page,
+            $limit
+        );
+
         return $this->render('location/index.html.twig', [
-            'locations' => $locationRepository->findAll(),
+            'pagination' => $pagination,
+            'filters' => [
+                'name' => $name,
+                'address' => $address,
+                'capacity' => $capacity,
+                'limit' => $limit,
+            ],
         ]);
     }
-
     #[Route('/new', name: 'app_location_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {

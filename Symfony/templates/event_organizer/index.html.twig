@@ -1,39 +1,61 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}EventOrganizer index{% endblock %}
+{% block title %}Організатори подій{% endblock %}
 
 {% block body %}
-    <h1>EventOrganizer index</h1>
+    <h1>Організатори подій</h1>
 
-    <table class="table">
+    <form method="get" class="mb-3" style="margin-bottom: 20px;">
+        <input type="text" name="name" value="{{ filters.name }}" placeholder="Ім'я">
+        <input type="text" name="email" value="{{ filters.email }}" placeholder="Email">
+        <input type="text" name="phone" value="{{ filters.phone }}" placeholder="Телефон">
+        <input type="text" name="event" value="{{ filters.event }}" placeholder="ID події">
+        <select name="limit">
+            {% for n in [5,10,20,50,100] %}
+                <option value="{{ n }}" {% if filters.limit == n %}selected{% endif %}>{{ n }} на сторінці</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Фільтрувати</button>
+        <a href="{{ path('app_event_organizer_index') }}">Скинути</a>
+    </form>
+
+    <table border="1" cellpadding="5" cellspacing="0">
         <thead>
             <tr>
-                <th>Id</th>
-                <th>Name</th>
+                <th>Ім'я</th>
                 <th>Email</th>
-                <th>Phone</th>
-                <th>actions</th>
+                <th>Телефон</th>
+                <th>Подія</th>
+                <th>Дії</th>
             </tr>
         </thead>
         <tbody>
-        {% for event_organizer in event_organizers %}
-            <tr>
-                <td>{{ event_organizer.id }}</td>
-                <td>{{ event_organizer.name }}</td>
-                <td>{{ event_organizer.email }}</td>
-                <td>{{ event_organizer.phone }}</td>
-                <td>
-                    <a href="{{ path('app_event_organizer_show', {'id': event_organizer.id}) }}">show</a>
-                    <a href="{{ path('app_event_organizer_edit', {'id': event_organizer.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">no records found</td>
-            </tr>
-        {% endfor %}
+            {% for organizer in pagination %}
+                <tr>
+                    <td>{{ organizer.name }}</td>
+                    <td>{{ organizer.email }}</td>
+                    <td>{{ organizer.phone }}</td>
+                    <td>{{ organizer.event ? organizer.event.id : '' }}</td>
+                    <td>
+                        <a href="{{ path('app_event_organizer_show', {'id': organizer.id}) }}">Деталі</a>
+                        <a href="{{ path('app_event_organizer_edit', {'id': organizer.id}) }}">Редагувати</a>
+                        <form method="post" action="{{ path('app_event_organizer_delete', {'id': organizer.id}) }}" style="display:inline-block;" onsubmit="return confirm('Ви впевнені?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ organizer.id) }}">
+                            <button class="btn btn-link" style="color:red; padding:0; border:none; background:none;" type="submit">Видалити</button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5">Нічого не знайдено</td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('app_event_organizer_new') }}">Create new</a>
+    <div style="margin-top: 20px;">
+        {{ knp_pagination_render(pagination) }}
+    </div>
+
+    <a href="{{ path('app_event_organizer_new') }}" style="margin-top: 20px; display: inline-block;">Додати нового організатора</a>
 {% endblock %}
