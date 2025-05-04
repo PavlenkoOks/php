@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\EventOrganizer;
 use App\Form\EventOrganizerForm;
 use App\Repository\EventOrganizerRepository;
+use App\Utils\JwtHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -60,6 +61,12 @@ final class EventOrganizerController extends AbstractController
     #[Route('/new', name: 'app_event_organizer_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin'])) {
+            return $this->redirectToRoute('app_event_organizer_index');
+        }
+
+
         $eventOrganizer = new EventOrganizer();
         $form = $this->createForm(EventOrganizerForm::class, $eventOrganizer);
         $form->handleRequest($request);
@@ -88,6 +95,12 @@ final class EventOrganizerController extends AbstractController
     #[Route('/{id}/edit', name: 'app_event_organizer_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, EventOrganizer $eventOrganizer, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin'])) {
+            return $this->redirectToRoute('app_event_organizer_index');
+        }
+
+
         $form = $this->createForm(EventOrganizerForm::class, $eventOrganizer);
         $form->handleRequest($request);
 
@@ -106,6 +119,12 @@ final class EventOrganizerController extends AbstractController
     #[Route('/{id}', name: 'app_event_organizer_delete', methods: ['POST'])]
     public function delete(Request $request, EventOrganizer $eventOrganizer, EntityManagerInterface $entityManager): Response
     {
+                $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin'])) {
+            return $this->redirectToRoute('app_event_organizer_index');
+        }
+
+
         if ($this->isCsrfTokenValid('delete'.$eventOrganizer->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($eventOrganizer);
             $entityManager->flush();

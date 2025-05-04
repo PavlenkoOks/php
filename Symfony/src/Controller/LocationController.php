@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Location;
 use App\Form\LocationForm;
 use App\Repository\LocationRepository;
+use App\Utils\JwtHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -56,6 +57,11 @@ final class LocationController extends AbstractController
     #[Route('/new', name: 'app_location_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin', 'Manager'])) {
+            return $this->redirectToRoute('app_location_index');
+        }
+
         $location = new Location();
         $form = $this->createForm(LocationForm::class, $location);
         $form->handleRequest($request);
@@ -84,6 +90,12 @@ final class LocationController extends AbstractController
     #[Route('/{id}/edit', name: 'app_location_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Location $location, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin', 'Manager'])) {
+            return $this->redirectToRoute('app_location_index');
+        }
+
+
         $form = $this->createForm(LocationForm::class, $location);
         $form->handleRequest($request);
 
@@ -102,6 +114,12 @@ final class LocationController extends AbstractController
     #[Route('/{id}', name: 'app_location_delete', methods: ['POST'])]
     public function delete(Request $request, Location $location, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin', 'Manager'])) {
+            return $this->redirectToRoute('app_location_index');
+        }
+
+
         if ($this->isCsrfTokenValid('delete'.$location->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($location);
             $entityManager->flush();

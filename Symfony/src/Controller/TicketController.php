@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Ticket;
 use App\Form\TicketForm;
 use App\Repository\TicketRepository;
+use App\Utils\JwtHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -60,6 +61,11 @@ final class TicketController extends AbstractController
     #[Route('/new', name: 'app_ticket_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin', 'Manager'])) {
+            return $this->redirectToRoute('app_ticket_index');
+        }
+
         $ticket = new Ticket();
         $form = $this->createForm(TicketForm::class, $ticket);
         $form->handleRequest($request);
@@ -88,6 +94,11 @@ final class TicketController extends AbstractController
     #[Route('/{id}/edit', name: 'app_ticket_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Ticket $ticket, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin', 'Manager'])) {
+            return $this->redirectToRoute('app_ticket_index');
+        }
+
         $form = $this->createForm(TicketForm::class, $ticket);
         $form->handleRequest($request);
 
@@ -106,6 +117,11 @@ final class TicketController extends AbstractController
     #[Route('/{id}', name: 'app_ticket_delete', methods: ['POST'])]
     public function delete(Request $request, Ticket $ticket, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin', 'Manager'])) {
+            return $this->redirectToRoute('app_ticket_index');
+        }
+
         if ($this->isCsrfTokenValid('delete'.$ticket->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($ticket);
             $entityManager->flush();

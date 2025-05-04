@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Реєстрація{% endblock %}
+
+{% block body %}
+    <h1>Реєстрація</h1>
+
+
+    <form method="POST">
+        <div>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+
+        <div>
+            <label for="password">Пароль</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+
+        <div>
+            <label for="role">Роль</label>
+            <select name="role" id="role">
+                <option value="Client">Клієнт</option>
+                <option value="Manager">Менеджер</option>
+                <option value="Admin">Адміністратор</option>
+            </select>
+        </div>
+
+        <div>
+            <button type="submit">Зареєструватися</button>
+        </div>
+    </form>
+
+    <p>Вже є акаунт? <a href="{{ path('app_login') }}">Увійти</a></p>
+{% endblock %}

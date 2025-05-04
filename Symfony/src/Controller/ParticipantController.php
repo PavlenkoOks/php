@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Participant;
 use App\Form\ParticipantForm;
 use App\Repository\ParticipantRepository;
+use App\Utils\JwtHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -60,6 +61,12 @@ final class ParticipantController extends AbstractController
     #[Route('/new', name: 'app_participant_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin'])) {
+            return $this->redirectToRoute('app_participant_index');
+        }
+
+
         $participant = new Participant();
         $form = $this->createForm(ParticipantForm::class, $participant);
         $form->handleRequest($request);
@@ -88,6 +95,11 @@ final class ParticipantController extends AbstractController
     #[Route('/{id}/edit', name: 'app_participant_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Participant $participant, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin'])) {
+            return $this->redirectToRoute('app_participant_index');
+        }
+
         $form = $this->createForm(ParticipantForm::class, $participant);
         $form->handleRequest($request);
 
@@ -106,6 +118,11 @@ final class ParticipantController extends AbstractController
     #[Route('/{id}', name: 'app_participant_delete', methods: ['POST'])]
     public function delete(Request $request, Participant $participant, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin'])) {
+            return $this->redirectToRoute('app_participant_index');
+        }
+
         if ($this->isCsrfTokenValid('delete'.$participant->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($participant);
             $entityManager->flush();

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Event;
 use App\Form\EventForm;
 use App\Repository\EventRepository;
+use App\Utils\JwtHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -64,6 +65,11 @@ final class EventController extends AbstractController
     #[Route('/new', name: 'app_event_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin', 'Manager'])) {
+            return $this->redirectToRoute('app_event_index');
+        }
+
         $event = new Event();
         $form = $this->createForm(EventForm::class, $event);
         $form->handleRequest($request);
@@ -92,6 +98,12 @@ final class EventController extends AbstractController
     #[Route('/{id}/edit', name: 'app_event_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Event $event, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin', 'Manager'])) {
+            return $this->redirectToRoute('app_event_index');
+        }
+
+
         $form = $this->createForm(EventForm::class, $event);
         $form->handleRequest($request);
 
@@ -110,6 +122,12 @@ final class EventController extends AbstractController
     #[Route('/{id}', name: 'app_event_delete', methods: ['POST'])]
     public function delete(Request $request, Event $event, EntityManagerInterface $entityManager): Response
     {
+        $role = JwtHelper::getUserRole($request);
+        if (!in_array($role, ['Admin', 'Manager'])) {
+            return $this->redirectToRoute('app_event_index');
+        }
+
+
         if ($this->isCsrfTokenValid('delete'.$event->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($event);
             $entityManager->flush();
